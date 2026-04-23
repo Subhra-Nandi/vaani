@@ -1,0 +1,10 @@
+faster-whisper
+sounddevice
+scipy
+TTS
+lingua-language-detector
+redis
+ollama
+fastapi
+uvicorn
+pydantic
