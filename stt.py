@@ -19,10 +19,10 @@ def transcribe(audio, sample_rate):
     write("/tmp/input.wav", sample_rate, audio)
     segments, info = model.transcribe(
         "/tmp/input.wav",
-        language="hi",          # force Hindi
-        task="transcribe",      # NOT translate
-        beam_size=5,            # better accuracy
-        vad_filter=True         # ignore silence
+        language="hi",
+        task="transcribe",
+        beam_size=1,        # faster
+        vad_filter=False    # remove this overhead
     )
     return " ".join([s.text for s in segments])
 
