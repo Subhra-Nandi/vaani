@@ -4,7 +4,9 @@ STATES = {
     "GREETING": {
         "entry_message": "Namaste {name}! Main TAP ki taraf se bol raha hoon. Kya aap abhi baat kar sakte hain?",
         "transitions": {
-            "yes_keywords": ["haan", "ha", "theek", "okay", "boliye", "bolo", "हाँ", "हां", "ठीक", "ओके"],
+            "yes_keywords": ["haan", "ha", "theek", "okay", "boliye", "bolo", 
+                 "हाँ", "हां", "हा", "ठीक", "बोलिए", "यस", "yes", 
+                 "आँ", "हाँ।", "जी", "ji", "zaroor", "bilkul"],
             "no_keywords": ["nahi", "baad", "busy", "time nahi","नहीं", "बाद", "बिज़ी"],
             "on_yes": "LMS_CONTEXT",
             "on_no": "RESCHEDULE",
@@ -56,15 +58,15 @@ STATES = {
         "transitions": {}
     },
     "GREETING_RETRY": {
-    "entry_message": "Kya aap mujhe sun pa rahe hain? Kripya 'haan' ya 'nahi' mein jawab dein.",
-    "transitions": {
-        "yes_keywords": ["haan", "ha", "sun", "हाँ", "हां", "हा"],
-        "no_keywords": ["nahi", "नहीं"],
-        "on_yes": "LMS_CONTEXT",
-        "on_no": "CLOSING_SOFT",
-        "default": "CLOSING_SOFT"
-    }
-},
+        "entry_message": "Kya aap mujhe sun pa rahe hain? Kripya 'haan' ya 'nahi' mein jawab dein.",
+        "transitions": {
+            "yes_keywords": ["haan", "ha", "sun", "हाँ", "हां", "हा"],
+            "no_keywords": ["nahi", "नहीं"],
+            "on_yes": "LMS_CONTEXT",
+            "on_no": "CLOSING_SOFT",
+            "default": "CLOSING_SOFT"
+        }
+    },
 }
 
 def classify_input(text: str, transitions: dict) -> str:
@@ -84,6 +86,18 @@ def get_next_response(session_id: str, user_text: str) -> dict:
     transitions = state_config.get("transitions", {})
 
     intent = classify_input(user_text, transitions)
+
+    # LLM handles objection states
+    if current_state == "OBJECTION_HANDLER" or (intent == "default" and session["turn"] > 1):
+        from llm_handler import handle_objection
+        llm_reply = handle_objection(user_text, session)
+        update_session(session_id, {"current_state": "COMMITMENT"})
+        return {
+            "reply": llm_reply,
+            "next_state": "COMMITMENT",
+            "intent": "llm_handled",
+            "is_terminal": False
+        }
 
     if intent == "yes" and "on_yes" in transitions:
         next_state = transitions["on_yes"]

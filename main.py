@@ -5,6 +5,7 @@ from tts import speak
 from lang_detect import detect_language
 from dialogue import get_next_response, STATES
 
+
 def play_greeting(session_id: str):
     session = get_session(session_id)
     greeting = STATES["GREETING"]["entry_message"].format(
@@ -14,6 +15,7 @@ def play_greeting(session_id: str):
     )
     print(f"\nBot: {greeting}")
     speak(greeting)
+
 
 def run_conversation(student_id: str = "TAP-9821"):
     print(f"\n=== Starting Vaani session for {student_id} ===\n")
@@ -29,8 +31,8 @@ def run_conversation(student_id: str = "TAP-9821"):
         audio, sr = record_audio(seconds=6)
         user_text = transcribe(audio, sr)
 
-        if not user_text.strip():
-            speak("Kya aap wahan hain? Kripya jawab dein.")
+        if not user_text.strip() or len(user_text.strip()) < 2:
+            print("(no speech detected, listening again...)")
             continue
 
         lang = detect_language(user_text)
@@ -42,12 +44,14 @@ def run_conversation(student_id: str = "TAP-9821"):
 
         if result['reply']:
             speak(result['reply'])
+            time.sleep(1.5)
 
         if result['is_terminal']:
             print("\n=== Conversation complete ===")
             break
 
         time.sleep(0.5)
+
 
 if __name__ == "__main__":
     run_conversation()
